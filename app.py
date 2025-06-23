@@ -1,53 +1,56 @@
 import streamlit as st
 import google.generativeai as genai
 
-# === Gemini API Setup ===
+# === Internal Model Config ===
 api_key = st.secrets["api_keys"]["google_api_key"]
 genai.configure(api_key=api_key)
 model = genai.GenerativeModel("gemini-1.5-flash")
 
-# === Streamlit UI Setup ===
-st.set_page_config(page_title="🧠 Brain-Age Predictor")
-st.title("🧠 Brain-Age Predictor")
-st.write("Adjust the sliders based on your current cognitive, behavioral, and lifestyle profile. Gemini will estimate your brain's biological age.")
+# === UI Setup ===
+st.set_page_config(page_title="Athlete Training Plan Recommender")
+st.title("Athlete Training Plan Recommender")
+st.write("This tool uses an adaptive training engine to generate personalized sports training plans based on your current condition and goals.")
 
 # === Input Sliders ===
-actual_age = st.slider("Your Actual Age", 18, 90, 30)
-memory_score = st.slider("Memory Performance", 1, 10, 6)
-sleep_hours = st.slider("Average Sleep per Night (hours)", 3, 10, 7)
-reaction_time = st.slider("Reaction Time (1 = very slow, 10 = very fast)", 1, 10, 6)
-mood_stability = st.slider("Mood Stability", 1, 10, 6)
-physical_activity = st.slider("Physical Activity Level", 1, 10, 5)
-brain_fog = st.slider("Brain Fog Frequency (1 = often, 10 = never)", 1, 10, 7)
+fitness_level = st.slider("Current Fitness Level", 1, 10, 5)
+endurance = st.slider("Endurance / Stamina", 1, 10, 5)
+strength = st.slider("Muscle Strength", 1, 10, 5)
+recovery = st.slider("Recovery Rate", 1, 10, 6)
+training_days = st.slider("Available Training Days per Week", 1, 7, 4)
+goal_focus = st.selectbox("Primary Goal", ["Fat Loss", "Muscle Gain", "Endurance", "Strength & Conditioning", "Athletic Performance"])
+has_injury = st.selectbox("Any Current Injury?", ["No", "Yes - Minor", "Yes - Significant"])
 
 # === Predict Button ===
-if st.button("Predict Brain Age"):
-    with st.spinner("Analyzing with Gemini..."):
+if st.button("Generate Training Plan"):
+    with st.spinner("Generating adaptive plan..."):
         prompt = f"""
-You're a neuroscience model that predicts biological brain age based on cognitive and behavioral indicators.
+You are a professional-level sports training engine. Based on the athlete's profile, generate:
 
-Use the following profile to estimate:
-- Predicted Brain Age (number only)
-- Delta vs Actual Age (say whether younger, same, or older)
-- 1-line explanation (concise, scientific tone)
+1. Recommended Training Focus (brief)
+2. Weekly Plan Overview (Mon–Sun with rest days)
+3. One-line rationale based on stats
+4. Avoid casual tone; keep it sports-scientific.
 
-Inputs:
-Actual Age: {actual_age}
-Memory: {memory_score}
-Sleep: {sleep_hours} hrs/night
-Reaction Time: {reaction_time}/10
-Mood Stability: {mood_stability}/10
-Physical Activity: {physical_activity}/10
-Brain Fog (inverted scale): {brain_fog}/10
+Input Profile:
+Fitness Level: {fitness_level}/10  
+Endurance: {endurance}/10  
+Strength: {strength}/10  
+Recovery: {recovery}/10  
+Training Days Available: {training_days}  
+Primary Goal: {goal_focus}  
+Injury Status: {has_injury}
 
-Respond in this exact format:
-Predicted Brain Age: <age>  
-Difference from Actual Age: <Younger | Same | Older>  
-Comment: <brief reason>
+Output format:
+Focus: <...>  
+Weekly Plan:  
+- Mon: ...  
+- Tue: ...  
+...  
+Rationale: <...>
 """
 
         response = model.generate_content(prompt)
-        result = response.text.strip()
+        plan = response.text.strip()
 
-        st.subheader("🧠 Gemini's Prediction")
-        st.text(result)
+        st.subheader("Your Personalized Training Plan")
+        st.text(plan)
